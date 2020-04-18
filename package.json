@@ -2,6 +2,10 @@
   "name": "react-test-app-1",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+   "npm": "6.13.4",
+   "node": "12.16.1"
+   },
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.1",
@@ -13,9 +17,9 @@
     "react-scripts": "3.4.0"
   },
   "scripts": {
-    "start": "env-cmd -f .env react-scripts start",
-    "build": "env-cmd -f .env react-scripts build",
-    "test": "env-cmd -f .env react-scripts test",
+    "start": "env-cmd -f .env.prod react-scripts start",
+    "build": "env-cmd -f .env.prod react-scripts build",
+    "test": "env-cmd -f .env.prod react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
