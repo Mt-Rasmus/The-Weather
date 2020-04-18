@@ -1,0 +1,17 @@
+
+.icon-container {
+   width: 70%;
+   margin: 0 auto;
+   @media (min-width: $desktop-breakpoint) {
+      width: 65%;
+   }
+}
+
+.icon {
+   width: 100%;
+   height: auto;
+   position: absolute;
+   bottom: 0;
+   left: 0;
+   padding-bottom: $s-size;
+}

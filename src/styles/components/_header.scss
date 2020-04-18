@@ -1,0 +1,30 @@
+
+.header {
+   background: $darker-grey;
+}
+
+.header__content {
+   align-items: center;
+   display: flex;
+   justify-content: space-between;
+   padding: $s-size;
+}
+
+.header__title {
+   color: white;
+   font-size: $font-size-xl;
+   text-decoration: none;
+}
+
+.header__text {
+   color: white;
+   font-size: $font-size-xl;
+   text-decoration: none;
+   cursor: pointer;
+   &:hover {
+      text-shadow: 2px 2px $red;
+   }
+   @media (min-width: $desktop-breakpoint) {
+      font-size: $font-size-xxl;
+   }
+}

@@ -1,0 +1,36 @@
+
+@import url('https://fonts.googleapis.com/css?family=IM+Fell+Double+Pica&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Cutive+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Averia+Sans+Libre&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Averia+Libre&display=swap');
+
+* {
+   box-sizing: border-box;
+}
+
+html {
+   font-size: 62.5%; // Setting base pixelsize to 10, so 1.0rem = 10px
+   background-color: $darkest-grey;
+}
+
+body {
+   color: $dark-grey;
+   //font-family: 'IM Fell Double Pica', serif;
+   font-family: 'Averia Libre', cursive;
+   //font-family: 'Averia Sans Libre', cursive;
+   //font-family: 'Cutive Mono', monospace;
+   font-size: $m-size;
+   line-height: 1.5;
+}
+
+button {
+   cursor: pointer;
+}
+
+button:disabled {
+   cursor: default;
+}
+
+.is-active {
+   font-weight: bold;
+}
