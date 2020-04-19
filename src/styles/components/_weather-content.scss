@@ -1,0 +1,31 @@
+
+.center-container {
+   align-items: center;
+   display: flex;
+   justify-content: center;
+}
+
+.location {
+   margin: $s-size auto 0 auto;
+   font-size: $font-size-xxxl;
+}
+
+.temperature {
+   margin: 0 auto;
+   font-size: $font-size-4xl;
+}
+
+.date {
+   font-size: $font-size-xl;
+   margin: 0 0 $m-size 0;
+   color: grey;
+}
+
+.icon {
+   width: 8rem;
+   margin-right: $s-size;
+   transition: all 0.1s ease-in-out;
+   //padding-bottom: $s-size;
+}
+
+

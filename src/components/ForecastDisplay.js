@@ -4,7 +4,7 @@ import React from 'react';
 const ForecastDisplay = () => {
 
    return (
-      <div>
+      <div className="content-container">
          <p>Forecast</p>
       </div>
    )
