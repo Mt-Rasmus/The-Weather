@@ -5,7 +5,7 @@ const Header = () => {// props gets passed in, so just destructuring it
       <header className="header">
          <div className="content-container">
             <div className="header__content">
-               <h1 className="header__title">The Weather</h1>
+               <h1 className="header__title">Tha Weather</h1>
             </div>   
          </div>
       </header>

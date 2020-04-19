@@ -16,10 +16,9 @@ const WeatherDisplay = () => {
          let searchQuery;
          searchQuery = (data === 'inputQuery' ? query : JSON.parse(data));
             fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
-            //fetch(`${OpenWeatherAPI.base}forecast?q=${query}&units=metric&APPID=${OpenWeatherAPI.key}`)
-               .then(res => {res.json(); console.log(res);})
+               .then(res => res.json())
                .then(result => {
-                  if( result !== undefined && result.status !== 404 ) {
+                  if( result !== undefined ) {
                      setWeather(result);
                      setQuery('');
                      setCity(result.name);
@@ -37,7 +36,7 @@ const WeatherDisplay = () => {
    }
 
    useEffect (() => {
-      const storedCity = localStorage.getItem(`city: ${city}`);
+      const storedCity = localStorage.getItem(`city${city}`);
       if(storedCity !== null ) {
          searchPlace((storedCity));  
       }
