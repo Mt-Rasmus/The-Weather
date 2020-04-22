@@ -1,7 +1,7 @@
 
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import WeatherContext from '../context/weather-context';
-import data from "../fixtures/data.json";
+import data from "../fixtures/weather-data3.js";
 import moment from 'moment';
 
 const WeatherDisplay = () => {
@@ -11,47 +11,132 @@ const WeatherDisplay = () => {
       base: "https://api.openweathermap.org/data/2.5/"
    }
 
+   const isFirstRun = useRef(true);
    const [query, setQuery] = useState('');
-   const { weather, city, setCity, setWeather } = useContext(WeatherContext);
+   const today = new Date().getDay();
+   const [day, setDay] = useState(new Date().getDay());
+   const { weather, forecast, city, setCity, setWeather, setForecast } = useContext(WeatherContext);
    const devMode = true;
    
-   const searchPlace = (data) => {
-         console.log(data)
-         let searchQuery;
-         searchQuery = (data === 'inputQuery' ? query : JSON.parse(data));
-            fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
-               .then(res => res.json())
-               .then(result => {
-                  if( result !== undefined && result.cod !== 429 ) {
-                     setWeather(result);
-                     setQuery('');
-                     setCity(result.name);
-                     localStorage.setItem(`city`, JSON.stringify(result.name));  
-                  } else {
+   const selectWeatherData = (inputData, setType) => {
+
+      if(setType === 'weather') {
+         setWeather({
+            temp: inputData.main.temp,
+            name: inputData.name,
+            country: inputData.sys.country,
+            timestamp: inputData.dt,
+            details: {
+               wind: inputData.wind.speed,
+               clouds: inputData.clouds.all,
+               humidity: inputData.main.humidity
+            }
+         });         
+      }
+      else if (setType === 'forecast') {
+         let element;
+         for(let i = 0; i < inputData.list.length; i++) {
+            element = inputData.list[i];
+            if(moment.utc(element.dt*1000).day() == day) { // this line is wrong
+               setWeather({
+                  temp: element.main.temp,
+                  name: inputData.city.name,
+                  country: inputData.city.country,
+                  timestamp: element.dt,
+                  details: {
+                     wind: element.wind.speed,
+                     clouds: element.clouds.all,
+                     humidity: element.main.humidity
                   }
-               })
+               });
+               break; // does not work for forEach. Need for or while...
+            }      
+         }
+      }
+   }
+
+   const searchPlace = (data) => {
+
+      let searchQuery;
+      if(data === 'inputQuery') { searchQuery = query; }
+      else if(data === 'dayChange') { searchQuery = city; }
+      else { searchQuery = JSON.parse(data); }
+
+      // fetch todays weather
+      day === today &&
+      fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
+         .then(res => res.json())
+         .then(result => {
+            if( result !== undefined && result.cod < 300 ) { // 429 - excessive calls
+               setQuery('');
+               setCity(result.name);
+               day === today && selectWeatherData(result, 'weather');
+               localStorage.setItem(`city`, JSON.stringify(result.name));
+            } else {
+               console.log('error');
+            }
+         })
+
+      // fetch weather forecast
+      fetch(`${OpenWeatherAPI.base}forecast?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
+         .then(res => res.json())
+         .then(result => {
+            if( result !== undefined && result.cod < 300 ) {
+               setForecast(result);
+               day !== today && selectWeatherData(result, 'forecast');
+            } else {
+               console.log('error');
+            }
+         })         
    }
 
    const onSearch = e => {
       if(e.key === "Enter") {
+         isFirstRun.current = false;
+         setCity(query);
          searchPlace('inputQuery');
       }
    }
 
    useEffect (() => {
       if(devMode) {
-         setWeather(data);
-         setCity(data.name);
+         //setWeather(data);
+         //setCity(data.name);
          localStorage.setItem(`city`, JSON.stringify(data.name));  
       } else {
          //const storedCity = localStorage.getItem(`city${city}`);
          const storedCity = localStorage.getItem(`city`);
          if(storedCity !== null && storedCity !== "undefined") {
+            isFirstRun.current = false;
             //searchPlace((storedCity));  
          }
       }
+      
+   } ,[])
 
-   })
+   useEffect (() => {
+      !isFirstRun.current && searchPlace('dayChange');
+   }, [day])
+
+   const getDayString = (dayNr) => {
+      dayNr = dayNr > 6 ? dayNr-7 : dayNr;
+      switch(dayNr) {
+         case 0: return 'Sunday';
+         case 1: return 'Monday';
+         case 2: return 'Tuesday';
+         case 3: return 'Wednesday';
+         case 4: return 'Thursday';
+         case 5: return 'Friday'; 
+         case 6: return 'Saturday'; 
+         default: return 'Error'; 
+      }
+   }
+
+   const onChangeDay = e => {
+      let pickedDay = Number(e.target.value);
+      pickedDay = pickedDay > 6 ? pickedDay-7 : pickedDay;
+      setDay(pickedDay);
+   }
 
    return (
       <div className="content-container">
@@ -64,38 +149,44 @@ const WeatherDisplay = () => {
             onKeyPress={onSearch}
             >
          </input>
+         <div>
+            <select type="text" className="select input-group__item" onChange={onChangeDay}>
+               <option value={today} >Today</option>
+               <option value={today + 1} >Tomorrow</option>
+               <option value={today + 2} >{getDayString(today + 2)}</option>
+               <option value={today + 3} >{getDayString(today + 3)}</option>
+               <option value={today + 4} >{getDayString(today + 4)}</option>
+            </select>                 
+         </div>
          { weather.name !== undefined ? (
             <div>
                <div className="center-container">
-                  <p className="location">{weather.name}, {weather.sys.country}</p>
+                  <p className="location">{weather.name}, {weather.country}</p>
                </div>
                <div className="center-container">
-                  <p className="date">{moment.utc(weather.dt*1000).format('MMMM Do YYYY, h:mm a')}</p>
+                  <p className="date">{moment.utc(weather.timestamp*1000).format('MMMM Do YYYY')}</p>
                </div>
                <div className="center-container">
                   <div className="center-container">
                      <img className="icon" src={`/images/sun1.png`} alt=""/>
                      <div >
-                        <p className="temperature">{Math.round(weather.main.temp - 250)}°</p>
+                        <p className="temperature">{Math.round(weather.temp)}°</p>
                      </div>                    
                   </div>
                   <div className="details">
                      <h2 className="details-header">Details</h2>
                      <hr className="hr-small"></hr>
                      <div className="details details__sub">
-                        <p className="details-text">Wind: </p><p className="details-text__unit">{weather.wind.speed}m/s</p>
-                        <p className="details-text">Clouds: </p><p className="details-text__unit">{weather.clouds.all}%</p>
-                        <p className="details-text">Humidity: </p><p className="details-text__unit">{weather.main.humidity}%</p>
+                        <p className="details-text">Wind: </p><p className="details-text__unit">{weather.details.wind}m/s</p>
+                        <p className="details-text">Clouds: </p><p className="details-text__unit">{weather.details.clouds}%</p>
+                        <p className="details-text">Humidity: </p><p className="details-text__unit">{weather.details.humidity}%</p>
                      </div>
                   </div>
                   <div><hr></hr></div>
                </div>
                <hr></hr>
-               
             </div>
-
          ) : ('') } 
-
       </div>
    );
 }

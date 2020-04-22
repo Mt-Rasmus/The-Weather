@@ -1,26 +1,15 @@
 
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { select, line, scaleLinear, axisBottom, axisLeft } from 'd3';
-import WeatherContext from '../context/weather-context';
-import data1 from "../fixtures/forecastsTest.json";
-import moment from 'moment';
 
-const ForecastDisplay = () => {
-
-   const getForecastData = () => {
-      
-   }
-
-   const { weather, forecast, city, setCity, setWeather, setForecast } = useContext(WeatherContext);
+const ForecastLineChart = () => {
 
    const [data, setData] = useState([0, 25, 30, 45, 15, 20, 0]);
-   
    const svgRef = useRef();
 
    useEffect(() => {
       const svg = select(svgRef.current);
-      
-      console.log(forecast);
+
       const xScale = scaleLinear()
          .domain([0, data.length - 1])
          .range([0, 300]); // map to value (svg pixel length)
@@ -62,14 +51,8 @@ const ForecastDisplay = () => {
             <g className='y-axis' />
          </svg>
          <button onClick={() => setData(data.map(value => value * 0.8))}></button>
-         { weather.name !== undefined ? (
-            <div>
-
-               <h2>{weather.name}</h2>
-            </div> 
-         ) : ('NEJ')}
       </div>
    )
 }
 
-export { ForecastDisplay as default };
+export { ForecastLineChart as default };
