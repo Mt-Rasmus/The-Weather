@@ -14,12 +14,12 @@ const WeatherDisplay = () => {
    const isFirstRun = useRef(true);
    const [query, setQuery] = useState('');
    const today = new Date().getDay();
-   const [day, setDay] = useState(new Date().getDay());
-   const { weather, forecast, city, setCity, setWeather, setForecast } = useContext(WeatherContext);
-   const devMode = true;
-   
-   const selectWeatherData = (inputData, setType) => {
+   const { weather, forecast, city, day,
+           setWeather, setForecast, setCity, setDay, setFetchDone } 
+           = useContext(WeatherContext);
 
+   const devMode = false;
+   const selectWeatherData = (inputData, setType) => {
       if(setType === 'weather') {
          setWeather({
             temp: inputData.main.temp,
@@ -31,13 +31,13 @@ const WeatherDisplay = () => {
                clouds: inputData.clouds.all,
                humidity: inputData.main.humidity
             }
-         });         
+         });    
       }
       else if (setType === 'forecast') {
          let element;
          for(let i = 0; i < inputData.list.length; i++) {
             element = inputData.list[i];
-            if(moment.utc(element.dt*1000).day() == day) { // this line is wrong
+            if(moment.utc(element.dt*1000).day() === day) { // rst
                setWeather({
                   temp: element.main.temp,
                   name: inputData.city.name,
@@ -49,7 +49,7 @@ const WeatherDisplay = () => {
                      humidity: element.main.humidity
                   }
                });
-               break; // does not work for forEach. Need for or while...
+               break;
             }      
          }
       }
@@ -61,9 +61,8 @@ const WeatherDisplay = () => {
       if(data === 'inputQuery') { searchQuery = query; }
       else if(data === 'dayChange') { searchQuery = city; }
       else { searchQuery = JSON.parse(data); }
-
       // fetch todays weather
-      day === today &&
+      (day === today && searchQuery !== '') &&
       fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
          .then(res => res.json())
          .then(result => {
@@ -76,8 +75,9 @@ const WeatherDisplay = () => {
                console.log('error');
             }
          })
-
+         
       // fetch weather forecast
+      searchQuery !== '' &&
       fetch(`${OpenWeatherAPI.base}forecast?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
          .then(res => res.json())
          .then(result => {
@@ -100,19 +100,21 @@ const WeatherDisplay = () => {
 
    useEffect (() => {
       if(devMode) {
-         //setWeather(data);
-         //setCity(data.name);
          localStorage.setItem(`city`, JSON.stringify(data.name));  
       } else {
          //const storedCity = localStorage.getItem(`city${city}`);
          const storedCity = localStorage.getItem(`city`);
          if(storedCity !== null && storedCity !== "undefined") {
             isFirstRun.current = false;
-            //searchPlace((storedCity));  
+            searchPlace((storedCity));
          }
       }
       
    } ,[])
+
+   useEffect (() => {
+      (!isFirstRun.current && Object.keys(forecast).length > 1) && setFetchDone(true);
+   }, [forecast])
 
    useEffect (() => {
       !isFirstRun.current && searchPlace('dayChange');
