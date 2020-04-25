@@ -123,11 +123,12 @@ const ForecastDisplay = () => {
          .attr('d', myLine)
          .attr('fill', 'none')
          .attr('stroke', '#f5e133')
-         .attr('stroke-width', '5')
+         .attr('stroke-width', '5');
          
       // add temp string above line
       svg
          .select('.text-group')
+         .raise()
          .selectAll('text')
          .data(data)
          .enter()

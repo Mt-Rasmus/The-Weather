@@ -18,6 +18,7 @@ const WeatherDisplay = () => {
            = useContext(WeatherContext);
 
    const devMode = false;
+
    const selectWeatherData = (inputData, setType) => {
       if(setType === 'weather') {
          setWeather({
@@ -33,10 +34,21 @@ const WeatherDisplay = () => {
          });    
       }
       else if (setType === 'forecast') {
-         let element;
+         let nowTime = new Date().getHours();
+         let element, currTimestamp, nextTimestamp;
          for(let i = 0; i < inputData.list.length; i++) {
+
             element = inputData.list[i];
-            if(moment.utc(element.dt*1000).day() === day) { // rst
+            currTimestamp = moment.utc(element.dt*1000).hour();
+            
+            if(moment.utc(element.dt*1000).day() === day && Math.abs(nowTime - currTimestamp) <= 3) {
+
+               // select the forecast element whose timestamp is closest to the current time
+               nextTimestamp = moment.utc(inputData.list[i+1].dt*1000).hour();
+               nextTimestamp = nextTimestamp === 0 ? 24 : nextTimestamp;
+               element = (Math.abs(nowTime - nextTimestamp) < Math.abs(nowTime - currTimestamp)) 
+               ? inputData.list[i+1] : element;
+
                setWeather({
                   temp: element.main.temp,
                   name: inputData.city.name,
@@ -60,6 +72,7 @@ const WeatherDisplay = () => {
       if(data === 'inputQuery') { searchQuery = query; }
       else if(data === 'dayChange') { searchQuery = city; }
       else { searchQuery = JSON.parse(data); }
+
       // fetch todays weather
       (day === today && searchQuery !== '') &&
       fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
@@ -98,9 +111,7 @@ const WeatherDisplay = () => {
    }
 
    useEffect (() => {
-      if(devMode) {
-         //localStorage.setItem(`city`, JSON.stringify(data.name));  
-      } else {
+      if(!devMode) {
          //const storedCity = localStorage.getItem(`city${city}`);
          const storedCity = localStorage.getItem(`city`);
          if(storedCity !== null && storedCity !== "undefined") {
@@ -108,7 +119,6 @@ const WeatherDisplay = () => {
             searchPlace((storedCity));
          }
       }
-      
    } ,[])
 
    useEffect (() => {
@@ -151,7 +161,7 @@ const WeatherDisplay = () => {
             >
          </input>
          <div>
-            <select type="text" className="select input-group__item" onChange={onChangeDay}>
+            <select type="text" className="select text-input input-group__item " onChange={onChangeDay}>
                <option value={today} >Today</option>
                <option value={today + 1} >Tomorrow</option>
                <option value={today + 2} >{getDayString(today + 2)}</option>
@@ -165,7 +175,7 @@ const WeatherDisplay = () => {
                   <p className="location">{weather.name}, {weather.country}</p>
                </div>
                <div className="center-container">
-                  <p className="date">{moment.utc(weather.timestamp*1000).format('MMMM Do YYYY')}</p>
+                  <p className="date">{`${moment.utc(weather.timestamp*1000).format('MMMM Do YYYY')} (${getDayString(day)})`}</p>
                </div>
                <div className="center-container">
                   <div className="center-container">
