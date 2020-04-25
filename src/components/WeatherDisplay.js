@@ -99,7 +99,7 @@ const WeatherDisplay = () => {
 
    useEffect (() => {
       if(devMode) {
-         localStorage.setItem(`city`, JSON.stringify(data.name));  
+         //localStorage.setItem(`city`, JSON.stringify(data.name));  
       } else {
          //const storedCity = localStorage.getItem(`city${city}`);
          const storedCity = localStorage.getItem(`city`);
