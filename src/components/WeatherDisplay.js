@@ -1,7 +1,6 @@
 
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import WeatherContext from '../context/weather-context';
-import data from "../fixtures/weather-data3.js";
 import moment from 'moment';
 
 const WeatherDisplay = () => {
