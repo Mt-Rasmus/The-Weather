@@ -6,11 +6,13 @@
 }
 
 html {
+   height: 100%;
    font-size: 62.5%; // Setting base pixelsize to 10, so 1.0rem = 10px
-   background-color: $off-white;
+   background-color: white;
 }
 
 body {
+   height: 100%;
    color: $dark-grey;
    font-family: 'Barlow', sans-serif;
    font-size: $m-size;

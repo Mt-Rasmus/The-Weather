@@ -38,12 +38,12 @@ const ForecastDisplay = () => {
   
          fMax = element.main.temp > fMax ? Math.round(element.main.temp) : fMax;
          fMin = element.main.temp < fMin ? Math.round(element.main.temp) : fMin;
-
+         console.log(element.weather[0].icon);
          samples.push(
          {
             temp: element.main.temp,
             time: element.dt_txt.substr(element.dt_txt.length-8, element.dt_txt.length).substr(0,5),
-            description: element.weather[0].description,
+            icon: element.weather[0].icon,
             idx: j-startIndex
          } )
       }
@@ -63,7 +63,8 @@ const ForecastDisplay = () => {
 
       const lineScaleBand = scaleBand()
       .domain(data.map(sample => {return sample.time}))
-      .paddingInner(1.25)
+      //.paddingInner(0.5)
+      .paddingOuter(-0.55)
       .rangeRound([0,width])
 
       const xScale = scaleLinear()
@@ -78,7 +79,7 @@ const ForecastDisplay = () => {
 
       svg
          .select('.x-axis')
-         .style('transform', 'translateY(150px)')
+         .style('transform', `translateY(${height}px)`)
          .call(xAxis);
 
       // const yAxis = axisLeft(yScale);
@@ -92,7 +93,7 @@ const ForecastDisplay = () => {
 
       const area1 = area()
          .x((value, idx) => xScale(idx))
-         .y0(150)
+         .y0(height)
          .y1(yScale);
 
       if(document.getElementById("tg").childElementCount === NrOfSamples) {
@@ -102,12 +103,23 @@ const ForecastDisplay = () => {
          .remove();
       }
 
+      if(document.getElementById("icons").childElementCount === NrOfSamples) {
+         svg
+         .select('.icon-group')
+         .selectAll('image')
+         .remove();
+      }  
+      
+      if(data.length > 0) {
+         console.log(data[0]);
+      }
+      
       // add the area under line
       svg
          .selectAll('path')
          .data([data.map(element => Math.round(element.temp))])
          .attr('class', 'area')
-         .style('transform', 'translateY(-150px)')
+         .style('transform', `translateY(-${height}px)`)
          .transition()
          .attr('d', area1)
          .attr('fill', '#f3e98e')
@@ -136,8 +148,25 @@ const ForecastDisplay = () => {
          .attr('class', 'text')
          .transition()
          .attr("x", d => d.idx*(width/(NrOfSamples-1)-1.5))
-         .attr("y", d => Math.round(150-((Math.round(d.temp)-min)*height/(max-min))-12))
+         .attr("y", d => Math.round(height-((Math.round(d.temp)-min)*height/(max-min))-12))
          .text(d => `${Math.round(d.temp)}°` );
+        
+      // add weather icons
+      svg
+         .select('.icon-group')
+         .raise()
+         .selectAll('image')
+         .data(data)
+         .enter()
+         .append('image')
+         .attr("href", d => `/images/icons/${d.icon}.png`)
+         .attr("class", "icon")
+         .attr("alt", " ")
+         .attr("height", "50")
+         .attr("width", "50")
+         .style('transform', `translateX(-${width/(NrOfSamples-1)-2.5}px)`)
+         .attr("x", d => d.idx*(width/(NrOfSamples-1)))
+         .attr("y", height+20)  
 
    }, [data])
 
@@ -149,10 +178,11 @@ const ForecastDisplay = () => {
                <g className='x-axis' />
                <g className='y-axis' />
                <g className='text-group' id="tg" />
+               <g className='icon-group' id="icons"/>
             </svg>
          </div>
       </div>
    )
 }
-
+//            <img className="icon" src={`/images/icons/${data[0].icon}.png`} alt=""/>
 export { ForecastDisplay as default };

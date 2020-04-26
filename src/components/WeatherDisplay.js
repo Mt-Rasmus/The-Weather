@@ -20,12 +20,14 @@ const WeatherDisplay = () => {
    const devMode = false;
 
    const selectWeatherData = (inputData, setType) => {
+
       if(setType === 'weather') {
          setWeather({
             temp: inputData.main.temp,
             name: inputData.name,
             country: inputData.sys.country,
             timestamp: inputData.dt,
+            icon:  inputData.weather[0].icon,
             details: {
                wind: inputData.wind.speed,
                clouds: inputData.clouds.all,
@@ -54,6 +56,7 @@ const WeatherDisplay = () => {
                   name: inputData.city.name,
                   country: inputData.city.country,
                   timestamp: element.dt,
+                  icon:  element.weather[0].icon,
                   details: {
                      wind: element.wind.speed,
                      clouds: element.clouds.all,
@@ -112,7 +115,6 @@ const WeatherDisplay = () => {
 
    useEffect (() => {
       if(!devMode) {
-         //const storedCity = localStorage.getItem(`city${city}`);
          const storedCity = localStorage.getItem(`city`);
          if(storedCity !== null && storedCity !== "undefined") {
             isFirstRun.current = false;
@@ -179,7 +181,8 @@ const WeatherDisplay = () => {
                </div>
                <div className="center-container">
                   <div className="center-container">
-                     <img className="icon" src={`/images/sun1.png`} alt=""/>
+                     {console.log(weather)}
+                     <img className="icon" src={`/images/icons/${weather.icon}.png`} alt=""/>
                      <div >
                         <p className="temperature">{Math.round(weather.temp)}°</p>
                      </div>                    

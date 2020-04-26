@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = () => {// props gets passed in, so just destructuring it
+const Header = () => {
    return (   
       <header className="header">
          <div className="content-container">
