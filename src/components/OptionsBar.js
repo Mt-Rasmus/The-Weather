@@ -5,7 +5,7 @@ import WeatherContext from '../context/weather-context';
 const OptionsBar = (props) => {
 
    const today = new Date().getDay();
-   const { setQuery, query } = useContext(WeatherContext);
+   //const { setQuery, query } = useContext(WeatherContext);
 
    return (
       <div className="content-container">
@@ -13,8 +13,8 @@ const OptionsBar = (props) => {
             type="text"
             placeholder="Location..."
             className="text-input"
-            onChange={e => setQuery(e.target.value)}
-            value={query}
+            onChange={e => props.setSearchQuery(e.target.value)}
+            value={props.query}
             onKeyPress={props.onSearch}
             >
          </input>

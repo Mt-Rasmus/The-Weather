@@ -151,9 +151,19 @@ const WeatherDisplay = () => {
       setDay(pickedDay);
    }
 
+   const setSearchQuery = inQuery => {
+      setQuery(inQuery);
+   }
+
    return (
       <div className="content-container">
-         <OptionsBar onChangeDay={onChangeDay} onSearch={onSearch} getDayString={getDayString} />
+         <OptionsBar 
+            onChangeDay={onChangeDay} 
+            onSearch={onSearch} 
+            getDayString={getDayString} 
+            setSearchQuery={setSearchQuery}
+            query={query}
+         />
          { weather.name !== undefined ? (
             <div>
                <div className="center-container">
