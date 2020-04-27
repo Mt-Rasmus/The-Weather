@@ -17,8 +17,8 @@ const ForecastDisplay = () => {
    const getForecastSamples = () => {
       let element = forecast.list[0];
       let samples = [];
-      let fMin = min;
-      let fMax = max;
+      let fMin = 99;
+      let fMax = -99;
       let startIndex;
 
       if(new Date().getDay() === day) { // if today
@@ -38,7 +38,7 @@ const ForecastDisplay = () => {
   
          fMax = element.main.temp > fMax ? Math.round(element.main.temp) : fMax;
          fMin = element.main.temp < fMin ? Math.round(element.main.temp) : fMin;
-         console.log(element.weather[0].icon);
+
          samples.push(
          {
             temp: element.main.temp,
@@ -63,7 +63,6 @@ const ForecastDisplay = () => {
 
       const lineScaleBand = scaleBand()
       .domain(data.map(sample => {return sample.time}))
-      //.paddingInner(0.5)
       .paddingOuter(-0.55)
       .rangeRound([0,width])
 
@@ -81,11 +80,6 @@ const ForecastDisplay = () => {
          .select('.x-axis')
          .style('transform', `translateY(${height}px)`)
          .call(xAxis);
-
-      // const yAxis = axisLeft(yScale);
-      // svg
-      // .select('.y-axis')
-      // .call(yAxis);
 
       const myLine = line()
          .x((value, idx) => xScale(idx))
@@ -109,10 +103,6 @@ const ForecastDisplay = () => {
          .selectAll('image')
          .remove();
       }  
-      
-      if(data.length > 0) {
-         console.log(data[0]);
-      }
       
       // add the area under line
       svg

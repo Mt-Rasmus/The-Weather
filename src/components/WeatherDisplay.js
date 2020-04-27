@@ -1,6 +1,7 @@
 
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import WeatherContext from '../context/weather-context';
+import OptionsBar from './OptionsBar';
 import moment from 'moment';
 
 const WeatherDisplay = () => {
@@ -44,7 +45,6 @@ const WeatherDisplay = () => {
             currTimestamp = moment.utc(element.dt*1000).hour();
             
             if(moment.utc(element.dt*1000).day() === day && Math.abs(nowTime - currTimestamp) <= 3) {
-
                // select the forecast element whose timestamp is closest to the current time
                nextTimestamp = moment.utc(inputData.list[i+1].dt*1000).hour();
                nextTimestamp = nextTimestamp === 0 ? 24 : nextTimestamp;
@@ -153,24 +153,7 @@ const WeatherDisplay = () => {
 
    return (
       <div className="content-container">
-         <input 
-            type="text"
-            placeholder="Location..."
-            className="text-input"
-            onChange={e => setQuery(e.target.value)}
-            value={query}
-            onKeyPress={onSearch}
-            >
-         </input>
-         <div>
-            <select type="text" className="select text-input input-group__item " onChange={onChangeDay}>
-               <option value={today} >Today</option>
-               <option value={today + 1} >Tomorrow</option>
-               <option value={today + 2} >{getDayString(today + 2)}</option>
-               <option value={today + 3} >{getDayString(today + 3)}</option>
-               <option value={today + 4} >{getDayString(today + 4)}</option>
-            </select>                 
-         </div>
+         <OptionsBar onChangeDay={onChangeDay} onSearch={onSearch} getDayString={getDayString} />
          { weather.name !== undefined ? (
             <div>
                <div className="center-container">
@@ -181,7 +164,6 @@ const WeatherDisplay = () => {
                </div>
                <div className="center-container">
                   <div className="center-container">
-                     {console.log(weather)}
                      <img className="icon" src={`/images/icons/${weather.icon}.png`} alt=""/>
                      <div >
                         <p className="temperature">{Math.round(weather.temp)}°</p>
