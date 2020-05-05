@@ -1,6 +1,5 @@
 
-import React, { useContext } from 'react';
-import WeatherContext from '../context/weather-context';
+import React from 'react';
 
 const OptionsBar = (props) => {
 

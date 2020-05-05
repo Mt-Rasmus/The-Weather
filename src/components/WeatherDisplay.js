@@ -6,6 +6,7 @@ import moment from 'moment';
 
 const WeatherDisplay = () => {
    
+   // setting up API connection parameters for weather/forecast data
    const OpenWeatherAPI = {
       key: process.env.REACT_APP_API_KEY,
       base: "https://api.openweathermap.org/data/2.5/"
@@ -18,91 +19,95 @@ const WeatherDisplay = () => {
            setWeather, setForecast, setCity, setDay, setFetchDone } 
            = useContext(WeatherContext);
 
-   const devMode = false;
-
-   const selectWeatherData = (inputData, setType) => {
-
-      if(setType === 'weather') {
-         setWeather({
-            temp: inputData.main.temp,
-            name: inputData.name,
-            country: inputData.sys.country,
-            timestamp: inputData.dt,
-            icon:  inputData.weather[0].icon,
-            details: {
-               wind: inputData.wind.speed,
-               clouds: inputData.clouds.all,
-               humidity: inputData.main.humidity
-            }
-         });    
-      }
-      else if (setType === 'forecast') {
-         let nowTime = new Date().getHours();
-         let element, currTimestamp, nextTimestamp;
-         for(let i = 0; i < inputData.list.length; i++) {
-
-            element = inputData.list[i];
-            currTimestamp = moment.utc(element.dt*1000).hour();
-            
-            if(moment.utc(element.dt*1000).day() === day && Math.abs(nowTime - currTimestamp) <= 3) {
-               // select the forecast element whose timestamp is closest to the current time
-               nextTimestamp = moment.utc(inputData.list[i+1].dt*1000).hour();
-               nextTimestamp = nextTimestamp === 0 ? 24 : nextTimestamp;
-               element = (Math.abs(nowTime - nextTimestamp) < Math.abs(nowTime - currTimestamp)) 
-               ? inputData.list[i+1] : element;
-
-               setWeather({
-                  temp: element.main.temp,
-                  name: inputData.city.name,
-                  country: inputData.city.country,
-                  timestamp: element.dt,
-                  icon:  element.weather[0].icon,
-                  details: {
-                     wind: element.wind.speed,
-                     clouds: element.clouds.all,
-                     humidity: element.main.humidity
-                  }
-               });
-               break;
-            }      
+   // Select current weather data (today selected)
+   const selectWeatherData = weatherData => {
+      setWeather({
+         temp: weatherData.main.temp,
+         name: weatherData.name,
+         country: weatherData.sys.country,
+         timestamp: weatherData.dt,
+         icon:  weatherData.weather[0].icon,
+         details: {
+            wind: weatherData.wind.speed,
+            clouds: weatherData.clouds.all,
+            humidity: weatherData.main.humidity
          }
-      }
+      });    
    }
 
-   const searchPlace = (data) => {
+   // Select current weather data from forecast data (today not selected)
+   const selectWeatherDataForecast = weatherData => {
+      const nowTime = new Date().getHours();
+      const timeBetweenSamples = 3;
+      const hoursInADay = 24;
+      let weatherDataElement, currTimestamp, nextTimestamp;
+
+      for(let i = 0; i < weatherData.list.length; i++) {
+
+         weatherDataElement = weatherData.list[i];
+         currTimestamp = moment.utc(weatherDataElement.dt*1000).hour();
+         
+         if(moment.utc(weatherDataElement.dt*1000).day() === day && Math.abs(nowTime - currTimestamp) <= timeBetweenSamples) {
+            // select the forecast weatherDataElement whose timestamp is closest to the current time
+            nextTimestamp = moment.utc(weatherData.list[i+1].dt*1000).hour();
+            nextTimestamp = nextTimestamp === 0 ? hoursInADay : nextTimestamp;
+            weatherDataElement = (Math.abs(nowTime - nextTimestamp) < Math.abs(nowTime - currTimestamp)) 
+            ? weatherData.list[i+1] : weatherDataElement;
+
+            setWeather({
+               temp: weatherDataElement.main.temp,
+               name: weatherData.city.name,
+               country: weatherData.city.country,
+               timestamp: weatherDataElement.dt,
+               icon:  weatherDataElement.weather[0].icon,
+               details: {
+                  wind: weatherDataElement.wind.speed,
+                  clouds: weatherDataElement.clouds.all,
+                  humidity: weatherDataElement.main.humidity
+               }
+            });
+            break;
+         }      
+      }      
+   }
+
+   const searchPlace = (inputString) => {
 
       let searchQuery;
-      if(data === 'inputQuery') { searchQuery = query; }
-      else if(data === 'dayChange') { searchQuery = city; }
-      else { searchQuery = JSON.parse(data); }
+      const failThreshold = 299;
+      if (!inputString) return;
+      if (inputString === 'inputQuery') { searchQuery = query; } // new search query
+      else if (inputString === 'dayChange') { searchQuery = city; } // new day selected (same city)
+      else { searchQuery = JSON.parse(inputString); } // city stored in local storage
 
       // fetch todays weather
       (day === today && searchQuery !== '') &&
       fetch(`${OpenWeatherAPI.base}weather?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
-         .then(res => res.json())
+         .then(response => response.json() ) 
          .then(result => {
-            if( result !== undefined && result.cod < 300 ) { // 429 - excessive calls
+            if( result !== undefined && result.cod < failThreshold ) { // cod below 299 is failed
                setQuery('');
                setCity(result.name);
-               day === today && selectWeatherData(result, 'weather');
-               localStorage.setItem(`city`, JSON.stringify(result.name));
+               day === today && selectWeatherData(result);
+               localStorage.setItem('city', JSON.stringify(result.name));
             } else {
-               console.log('error');
+               console.log(`error code ${result.cod}`);
             }
          })
          
       // fetch weather forecast
       searchQuery !== '' &&
       fetch(`${OpenWeatherAPI.base}forecast?q=${searchQuery}&units=metric&APPID=${OpenWeatherAPI.key}`)
-         .then(res => res.json())
+         .then(response => response.json())
          .then(result => {
-            if( result !== undefined && result.cod < 300 ) {
+            if( result !== undefined && result.cod < failThreshold ) { // cod below 299 is failed
                setForecast(result);
-               day !== today && selectWeatherData(result, 'forecast');
+               day !== today && selectWeatherDataForecast(result);
             } else {
-               console.log('error');
+               console.log(`error code ${result.cod}`);
             }
-         })         
+         }) 
+
    }
 
    const onSearch = e => {
@@ -113,13 +118,13 @@ const WeatherDisplay = () => {
       }
    }
 
+   // if for city present in local storage (last city searched in last session)
+   // set weather data accordingly
    useEffect (() => {
-      if(!devMode) {
-         const storedCity = localStorage.getItem(`city`);
-         if(storedCity !== null && storedCity !== "undefined") {
-            isFirstRun.current = false;
-            searchPlace((storedCity));
-         }
+      const storedCity = localStorage.getItem('city');
+      if(storedCity !== null && storedCity !== "undefined") {
+         isFirstRun.current = false;
+         searchPlace((storedCity));
       }
    } ,[])
 

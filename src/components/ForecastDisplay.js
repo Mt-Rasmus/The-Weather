@@ -7,18 +7,18 @@ import moment from 'moment';
 const ForecastDisplay = () => {
 
    const { forecast, day } = useContext(WeatherContext);
-   const [data, setData] = useState([]);
-   const [min, setMin] = useState(99);
-   const [max, setMax] = useState(-99);
+   const [forecastData, setForecastData] = useState([]);
+   const [min, setMin] = useState(99); // min value on line graph
+   const [max, setMax] = useState(-99); // max value on line graph
    const svgRef = useRef();
    const NrOfSamples = 8;
 
    // update state with forecast samples of day user has chosen
    const getForecastSamples = () => {
-      let element = forecast.list[0];
+      let forecastDataElement = forecast.list[0];
       let samples = [];
-      let fMin = 99;
-      let fMax = -99;
+      let tempMin = 99;
+      let tempMax = -99;
       let startIndex;
 
       if(new Date().getDay() === day) { // if today
@@ -26,48 +26,50 @@ const ForecastDisplay = () => {
       }
       else {
          for(let i = 0; i < forecast.list.length; i++) {
-            element = forecast.list[i];
-            if(moment.utc(element.dt*1000).day() === day) {
+            forecastDataElement = forecast.list[i];
+            if(moment.utc(forecastDataElement.dt*1000).day() === day) {
                startIndex = i+1;
                break;
             }      
          }          
       }
       for(let j = startIndex; j < startIndex + NrOfSamples; j++) {
-         element = forecast.list[j];
+         forecastDataElement = forecast.list[j];
   
-         fMax = element.main.temp > fMax ? Math.round(element.main.temp) : fMax;
-         fMin = element.main.temp < fMin ? Math.round(element.main.temp) : fMin;
+         tempMax = forecastDataElement.main.temp > tempMax ? Math.round(forecastDataElement.main.temp) : tempMax;
+         tempMin = forecastDataElement.main.temp < tempMin ? Math.round(forecastDataElement.main.temp) : tempMin;
 
          samples.push(
          {
-            temp: element.main.temp,
-            time: element.dt_txt.substr(element.dt_txt.length-8, element.dt_txt.length).substr(0,5),
-            icon: element.weather[0].icon,
+            temp: forecastDataElement.main.temp,
+            time: forecastDataElement.dt_txt.substr(forecastDataElement.dt_txt.length-8, forecastDataElement.dt_txt.length).substr(0,5),
+            icon: forecastDataElement.weather[0].icon,
             idx: j-startIndex
          } )
       }
-      setData(samples);
-      setMin(fMin-2);
-      setMax(fMax+2);
+      setForecastData(samples);
+      setMin(tempMin-2);
+      setMax(tempMax+2);
    }
 
    useEffect(() => {
       getForecastSamples();
    }, [forecast])
 
+   // Handles setting up d3 graph and elements
    useEffect(() => {
+
       const svg = select(svgRef.current);
       const width = document.getElementsByClassName("svg")[0].getClientRects()[0].width;
       const height = document.getElementsByClassName("svg")[0].getClientRects()[0].height;
 
       const lineScaleBand = scaleBand()
-      .domain(data.map(sample => {return sample.time}))
+      .domain(forecastData.map(sample => {return sample.time}))
       .paddingOuter(-0.55)
       .rangeRound([0,width])
 
       const xScale = scaleLinear()
-         .domain([0, data.length - 1])
+         .domain([0, forecastData.length - 1])
          .range([0, width]); // map to value (svg pixel length)
 
       const yScale = scaleLinear()
@@ -81,7 +83,7 @@ const ForecastDisplay = () => {
          .style('transform', `translateY(${height}px)`)
          .call(xAxis);
 
-      const myLine = line()
+      const line1 = line()
          .x((value, idx) => xScale(idx))
          .y(yScale); // origin of svg is top left (y-val 0)
 
@@ -107,7 +109,7 @@ const ForecastDisplay = () => {
       // add the area under line
       svg
          .selectAll('path')
-         .data([data.map(element => Math.round(element.temp))])
+         .data([forecastData.map(forecastDataElement => Math.round(forecastDataElement.temp))])
          .attr('class', 'area')
          .style('transform', `translateY(-${height}px)`)
          .transition()
@@ -118,11 +120,11 @@ const ForecastDisplay = () => {
       // Add the line
       svg
          .selectAll('.line')
-         .data([data.map(element => Math.round(element.temp))])
+         .data([forecastData.map(forecastDataElement => Math.round(forecastDataElement.temp))])
          .join('path')
          .attr('class', 'line')
          .transition()
-         .attr('d', myLine)
+         .attr('d', line1)
          .attr('fill', 'none')
          .attr('stroke', '#f5e133')
          .attr('stroke-width', '5');
@@ -132,7 +134,7 @@ const ForecastDisplay = () => {
          .select('.text-group')
          .raise()
          .selectAll('text')
-         .data(data)
+         .data(forecastData)
          .enter()
          .append("text")
          .attr('class', 'text')
@@ -146,7 +148,7 @@ const ForecastDisplay = () => {
          .select('.icon-group')
          .raise()
          .selectAll('image')
-         .data(data)
+         .data(forecastData)
          .enter()
          .append('image')
          .attr("href", d => `/images/icons/${d.icon}.png`)
@@ -156,9 +158,9 @@ const ForecastDisplay = () => {
          .attr("width", "50")
          .style('transform', `translateX(-${width/(NrOfSamples-1)-2.5}px)`)
          .attr("x", d => d.idx*(width/(NrOfSamples-1)))
-         .attr("y", height+20)  
+         .attr("y", height+20) // offset icons down 
 
-   }, [data])
+   }, [forecastData])
 
 
    return (
@@ -174,5 +176,5 @@ const ForecastDisplay = () => {
       </div>
    )
 }
-//            <img className="icon" src={`/images/icons/${data[0].icon}.png`} alt=""/>
+
 export { ForecastDisplay as default };
