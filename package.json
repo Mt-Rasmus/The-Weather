@@ -13,10 +13,10 @@
     "d3": "^5.15.1",
     "env-cmd": "^10.1.0",
     "moment": "^2.24.0",
-    "node-sass": "^4.13.1",
+    "node-sass": "^9.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-scripts": "3.4.0"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "dev": "env-cmd -f .env.prod react-scripts start",
